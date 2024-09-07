@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>German Flash Card</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f4f4f4;
+            --text-color: #333;
+            --card-front: #3498db;
+            --card-back: #2ecc71;
+            --button-bg: #3498db;
+            --button-hover: #2980b9;
+            --settings-bg: rgba(255, 255, 255, 0.9);
+        }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .flash-card {
+            width: 300px;
+            height: 200px;
+            perspective: 1000px;
+            margin: 20px auto;
+        }
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+        .flash-card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            border-radius: 5px;
+        }
+        .card-front {
+            background-color: var(--card-front);
+            color: white;
+        }
+        .card-back {
+            background-color: var(--card-back);
+            color: white;
+            transform: rotateY(180deg);
+        }
+        button {
+            background-color: var(--button-bg);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: var(--button-hover);
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        #theme-switch {
+            display: none;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        body.dark-theme {
+            --bg-color: #333;
+            --text-color: #f4f4f4;
+            --button-bg: #2c3e50;
+            --button-hover: #34495e;
+            --settings-bg: rgba(0, 0, 0, 0.9);
+        }
+        .settings-icon {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .settings-panel {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--settings-bg);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .settings-content {
+            background-color: var(--bg-color);
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .close-settings {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .audio-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+        }
+        @media (max-width: 600px) {
+            .flash-card {
+                width: 250px;
+                height: 150px;
+            }
+            .card-front, .card-back {
+                font-size: 20px;
+            }
+            button {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>GFC</h1>
+        
+        <div id="flash-card" class="flash-card" tabindex="0" aria-label="Flash card">
+            <div class="card-inner">
+                <div class="card-front">
+                    <p id="front-text">Front</p>
+                    <button class="audio-button" id="front-audio" aria-label="Play audio"><i class="fas fa-volume-up"></i></button>
+                </div>
+                <div class="card-back">
+                    <p id="back-text">Back</p>
+                    <button class="audio-button" id="back-audio" aria-label="Play audio"><i class="fas fa-volume-up"></i></button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="prev-btn" aria-label="Previous card">Previous</button>
+            <button id="next-btn" aria-label="Next card">Next</button>
+            <button id="shuffle-btn" aria-label="Shuffle cards">Shuffle</button>
+        </div>
+    </div>
+
+    <div class="theme-toggle">
+        <label class="switch" for="theme-switch">
+            <input type="checkbox" id="theme-switch">
+            <span class="slider"></span>
+        </label>
+    </div>
+
+    <i class="fas fa-cog settings-icon" id="settings-icon" aria-label="Open settings"></i>
+
+    <div class="settings-panel" id="settings-panel">
+        <div class="settings-content">
+            <h2>Settings</h2>
+            <button id="add-pair-btn" aria-label="Add new word pair">Add Word Pair</button>
+            <button id="reset-data-btn" aria-label="Reset all data">Reset Data</button>
+            <i class="fas fa-times close-settings" id="close-settings" aria-label="Close settings"></i>
+        </div>
+    </div>
+
+    <script>
+        let wordPairs = [];
+        let currentPairIndex = 0;
+
+        function initializeData() {
+            const storedPairs = localStorage.getItem('wordPairs');
+            if (storedPairs) {
+                wordPairs = JSON.parse(storedPairs);
+            } else {
+                wordPairs = [
+                    { english: 'Hello', german: 'Hallo' },
+                    { english: 'Goodbye', german: 'Auf Wiedersehen' },
+                    { english: 'Thank you', german: 'Danke' },
+                    { english: 'Please', german: 'Bitte' },
+                    { english: 'Yes', german: 'Ja' },
+                    { english: 'No', german: 'Nein' },
+                    { english: 'Good morning', german: 'Guten Morgen' },
+                    { english: 'Good night', german: 'Gute Nacht' },
+                    { english: 'How are you?', german: 'Wie geht es dir?' },
+                    { english: 'My name is', german: 'Ich heiße' }
+                ];
+                localStorage.setItem('wordPairs', JSON.stringify(wordPairs));
+            }
+        }
+
+        function displayPair(index) {
+            const pair = wordPairs[index];
+            document.getElementById('front-text').textContent = pair.english;
+            document.getElementById('back-text').textContent = pair.german;
+        }
+
+        function nextPair() {
+            currentPairIndex = (currentPairIndex + 1) % wordPairs.length;
+            displayPair(currentPairIndex);
+        }
+
+        function prevPair() {
+            currentPairIndex = (currentPairIndex - 1 + wordPairs.length) % wordPairs.length;
+            displayPair(currentPairIndex);
+        }
+
+        function shuffleAndDisplay() {
+            currentPairIndex = Math.floor(Math.random() * wordPairs.length);
+            displayPair(currentPairIndex);
+        }
+
+        document.getElementById('flash-card').addEventListener('click', function(e) {
+            if (!e.target.classList.contains('audio-button')) {
+                this.classList.toggle('flipped');
+            }
+        });
+
+        document.getElementById('next-btn').addEventListener('click', nextPair);
+        document.getElementById('prev-btn').addEventListener('click', prevPair);
+        document.getElementById('shuffle-btn').addEventListener('click', shuffleAndDisplay);
+
+        initializeData();
+        shuffleAndDisplay();
+
+        function addWordPair(english, german) {
+            wordPairs.push({ english, german });
+            localStorage.setItem('wordPairs', JSON.stringify(wordPairs));
+        }
+
+        function resetData() {
+            if (confirm('Are you sure you want to reset all data? This action cannot be undone.')) {
+                localStorage.removeItem('wordPairs');
+                initializeData();
+                shuffleAndDisplay();
+            }
+        }
+
+        document.getElementById('reset-data-btn').addEventListener('click', resetData);
+
+        document.getElementById('add-pair-btn').addEventListener('click', function() {
+            const english = prompt('Enter English word:');
+            const german = prompt('Enter German translation:');
+            if (english && german) {
+                addWordPair(english, german);
+                alert('Word pair added successfully!');
+            }
+        });
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            localStorage.setItem('darkTheme', document.body.classList.contains('dark-theme'));
+        }
+
+        document.getElementById('theme-switch').addEventListener('change', toggleTheme);
+
+        if (localStorage.getItem('darkTheme') === 'true') {
+            document.body.classList.add('dark-theme');
+            document.getElementById('theme-switch').checked = true;
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowRight') {
+                nextPair();
+            } else if (e.key === 'ArrowLeft') {
+                prevPair();
+            } else if (e.key === ' ' || e.key === 'Enter') {
+                document.getElementById('flash-card').classList.toggle('flipped');
+            }
+        });
+
+        // Settings panel functionality
+        const settingsIcon = document.getElementById('settings-icon');
+        const settingsPanel = document.getElementById('settings-panel');
+        const closeSettings = document.getElementById('close-settings');
+
+        settingsIcon.addEventListener('click', () => {
+            settingsPanel.style.display = 'flex';
+        });
+
+        closeSettings.addEventListener('click', () => {
+            settingsPanel.style.display = 'none';
+        });
+
+        // Text-to-speech functionality
+        function speak(text, lang) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang;
+            speechSynthesis.speak(utterance);
+        }
+
+        document.getElementById('front-audio').addEventListener('click', function() {
+            speak(document.getElementById('front-text').textContent, 'en-US');
+        });
+
+        document.getElementById('back-audio').addEventListener('click', function() {
+            speak(document.getElementById('back-text').textContent, 'de-DE');
+        });
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/service-worker.js').then(function(registration) {
+                    console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                }, function(err) {
+                    console.log('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
